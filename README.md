@@ -13,3 +13,5 @@ to do
 - allow for more than 2 players
 - deal with war if one player doesn't have enough cards to put down
 - graph: y = number of cards in hand, x = round
+
+[try it here](http://mattwbarry.com/war/)
