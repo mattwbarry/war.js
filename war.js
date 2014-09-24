@@ -1,4 +1,4 @@
-var deck = [
+deck = [
 	{
 		'suit': 'diamonds',
 		'card': '2',
@@ -261,112 +261,164 @@ var deck = [
 	},
 ]
 
-var _tom = []
-var _claire = []
-var round = 0
+_tom = {'name': 'Tom', 'cards': []}
+_claire = {'name': 'Claire', 'cards': []}
+round = 0
+output = ''
 
-function shuffle(array) {
-	var currentIndex = array.length, temporaryValue, randomIndex ;
+window.onload = function() {
 
-	// While there remain elements to shuffle...
-	while (0 !== currentIndex) {
-
-		// Pick a remaining element...
-		randomIndex = Math.floor(Math.random() * currentIndex);
-		currentIndex -= 1;
-
-		// And swap it with the current element.
-		temporaryValue = array[currentIndex];
-		array[currentIndex] = array[randomIndex];
-		array[randomIndex] = temporaryValue;
+	function playWar() {
+		reset()
+		dealCards()
+		while (_tom.cards.length > 0 && _claire.cards.length > 0) {
+			playRound()
+			if (round > 20000) {
+				alert('You have entered an endless war!')
+				break
+			}
+		}
+		displayWinner()
 	}
 
-	return array;
-}
-
-function reset() {
-	_tom = []
-	_claire = []
-	round = 0
-}
-
-function playWar() {
-	for (var i = 0; i < 10; i++) {
-		shuffle(deck)
+	function reset() {
+		_tom = {'name': 'Tom', 'cards': []}
+		_claire = {'name': 'Claire', 'cards': []}
+		round = 0
+		output = ''
+		document.getElementById('war-output').innerHTML = ''
 	}
-	dealCards()
-	while (_tom.length > 0 && _claire.length > 0) {
-		playLoop()
+
+	function dealCards() {
+		for (var i = 0; i < 10; i++) {
+			shuffle(deck)
+		}
+		_tom = {'name': 'Tom', 'cards': []}
+		_claire = {'name': 'Claire', 'cards': []}
+		for (var i = 0; i < deck.length / 2; i++) {
+			_tom.cards.push(deck[i])
+			_claire.cards.push(deck[i+1])
+		}
 	}
-}
 
-function dealCards() {
-	for (var i = 0; i < deck.length / 2; i++) {
-		_tom.push(deck[i])
-		_claire.push(deck[i+1])
+	function shuffle(array) {
+		var currentIndex = array.length, temporaryValue, randomIndex ;
+
+		// While there remain elements to shuffle...
+		while (0 !== currentIndex) {
+
+			// Pick a remaining element...
+			randomIndex = Math.floor(Math.random() * currentIndex);
+			currentIndex -= 1;
+
+			// And swap it with the current element.
+			temporaryValue = array[currentIndex];
+			array[currentIndex] = array[randomIndex];
+			array[randomIndex] = temporaryValue;
+		}
+
+		return array;
 	}
-}
 
-function playLoop() {
-	round += 1
+	function playRound() {
+		round += 1
+		//console.log(round)
 
-	tCard = _tom.shift()
-	cCard = _claire.shift()
-	tWar = []
-	cWar = []
-	war = false
-	console.log('Round ' + round + ' - Tom played a ' + tCard.card + ' and Claire played a ' + cCard.card)
+		tCard = _tom.cards.shift()
+		cCard = _claire.cards.shift()
+		tWar = []
+		cWar = []
+		war = false
+		output += '<b>Round ' + round + '</b><br />Tom played ' + returnAnA(tCard.card) + ' and Claire played ' + returnAnA(cCard.card) + '<br/>'
+		//console.log('Round ' + round + ' - Tom played ' + returnAnA(tCard.card) + ' and Claire played ' + returnAnA(cCard.card))
 
-	// war
-	if (tCard.value == cCard.value) {
-		war = true
-		console.log('WAR!')
-		while (tCard.value == cCard.value) {
-			// if players have enough cards, play as normal
-			if (_tom.length > 3 && _claire.length > 3) {
-				// add current cards to the pile
-				tWar.push(tCard)
-				cWar.push(cCard)
-				// put down 3 cards
-				for (var i = 0; i < 3; i++) {
-					tWar.push(_tom.shift())
-					cWar.push(_claire.shift())
+		// war
+		if (tCard.value == cCard.value) {
+			war = true
+			output += 'WAR!<br />'
+			//console.log('WAR!')
+			while (tCard.value == cCard.value) {
+				// if players have enough cards, play as normal
+				if (_tom.cards.length > 3 && _claire.cards.length > 3) {
+					// add current cards to the pile
+					tWar.push(tCard)
+					cWar.push(cCard)
+					// put down 3 cards
+					for (var i = 0; i < 3; i++) {
+						tWar.push(_tom.cards.shift())
+						cWar.push(_claire.cards.shift())
+					}
+					// put down one more to check values
+					tCard = _tom.cards.shift()
+					cCard = _claire.cards.shift()
+					//console.log('tWar:')
+					//console.log(tWar)
+					//console.log('cWar:')
+					//console.log(cWar)
 				}
-				// put down one more to check values
-				tCard = _tom.shift()
-				cCard = _claire.shift()
-				console.log('tWar:')
-				console.log(tWar)
-				console.log('cWar:')
-				console.log(cWar)
+				// otherwise have one player play as normal and use last card as card for other player
+				else {
+					break
+				}
 			}
-			// otherwise have one player play as normal and use last card as card for other player
+		}
+
+		// tom wins
+		if (tCard.value > cCard.value) {
+			winRound(_tom)
+		}
+		// claire wins
+		else {
+			winRound(_claire)
+		}
+		output += '<br />'
+	}
+
+	function winRound(winner) {
+		winner.cards.push(tCard)
+		winner.cards.push(cCard)
+		if (war) {
+			for (var i = 0; i < tWar.length; i++) {
+				winner.cards.push(tWar[i])
+				winner.cards.push(cWar[i])
+				output += winner.name + ' lost ' + returnAnA(tWar[i].card) + '<br />'
+				//console.log('Claire lost ' + returnAnA(tWar[i].card))
+			}
+		}
+		output += winner.name + ' wins this round!<br />'
+	}
+
+	function displayWinner() {
+		if (_tom.cards.length == 0) {
+			output += 'CLAIRE WINS THE WAR!!!!!'
+			//console.log('CLAIRE WINS THE WAR!!!!!')
+			alert('Claire wins after ' + round + ' rounds!')
+		}
+		else if (_claire.cards.length == 0) {
+			output += 'TOM WINS THE WAR!!!!!'
+			//console.log('TOM WINS THE WAR!!!!!')
+			alert('Tom wins after ' + round + ' rounds!')
+		}
+		else {
+			output = 'ENDLESS WAR!'
+		}
+		document.getElementById('war-output').innerHTML = output
+	}
+
+	function returnAnA(card) {
+		if (card == '8' || card == 'ace') {
+			return 'an ' + card
+		}
+		else {
+			return 'a ' + card
 		}
 	}
 
-	// tom wins
-	if (tCard.value > cCard.value) {
-		_tom.push(tCard)
-		_tom.push(cCard)
-		if (war) {
-			for (var i = 0; i < tWar.length; i++) {
-				_tom.push(tWar[i])
-				_tom.push(cWar[i])
-				console.log('push ' + i)
-			}
-		}
-		console.log('Tom wins this round!')
-	}
-	// claire wins
-	else {
-		_claire.push(tCard)
-		_claire.push(cCard)
-		if (war) {
-			for (var i = 0; i < tWar.length; i++) {
-				_claire.push(tWar[i])
-				_claire.push(cWar[i])
-			}
-		}
-		console.log('Claire wins this round!')
-	}
+	document.getElementById('btn-play-war').addEventListener('click', function() {
+		document.getElementById('war-output').innerHTML = 'playing war...'
+		// put this in a settimeout so that the function returns and the innerHTML renders before entering the play loop
+		setTimeout(function() {
+			playWar()
+		}, 10)
+	})
 }
